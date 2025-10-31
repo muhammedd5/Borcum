@@ -16,26 +16,36 @@ export interface StockSearchResult {
 }
 
 const TURKEY_STOCKS = [
-  { symbol: 'ASELS', name: 'Aselsan Elektronik', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'THYAO', name: 'Türk Hava Yolları', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'GARAN', name: 'Garanti BBVA', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'EREGL', name: 'Ereğli Demir Çelik', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'AKBNK', name: 'Akbank', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'TUPRS', name: 'Tüpraş', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'SAHOL', name: 'Sabancı Holding', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'KCHOL', name: 'Koç Holding', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'SISE', name: 'Şişe Cam', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'PETKM', name: 'Petkim', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'TCELL', name: 'Turkcell', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'ISCTR', name: 'İş Bankası', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'YKBNK', name: 'Yapı Kredi', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'HALKB', name: 'Halkbank', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'VAKBN', name: 'Vakıfbank', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'BIMAS', name: 'BIM', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'MGROS', name: 'Migros', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'KOZAL', name: 'Koza Altın', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'PGSUS', name: 'Pegasus', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
-  { symbol: 'FROTO', name: 'Ford Otosan', exchange: 'BIST', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/icon/generic.svg' },
+  { symbol: 'ASELS', name: 'Aselsan Elektronik', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/company.png' },
+  { symbol: 'THYAO', name: 'Türk Hava Yolları', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/airplane-take-off.png' },
+  { symbol: 'GARAN', name: 'Garanti BBVA', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/bank-building.png' },
+  { symbol: 'EREGL', name: 'Ereğli Demir Çelik', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/steel-beam.png' },
+  { symbol: 'AKBNK', name: 'Akbank', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/bank-building.png' },
+  { symbol: 'TUPRS', name: 'Tüpraş', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/oil-industry.png' },
+  { symbol: 'SAHOL', name: 'Sabancı Holding', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/company.png' },
+  { symbol: 'KCHOL', name: 'Koç Holding', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/company.png' },
+  { symbol: 'SISE', name: 'Şişe Cam', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/glass.png' },
+  { symbol: 'PETKM', name: 'Petkim', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/oil-industry.png' },
+  { symbol: 'TCELL', name: 'Turkcell', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/cell-phone.png' },
+  { symbol: 'ISCTR', name: 'İş Bankası', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/bank-building.png' },
+  { symbol: 'YKBNK', name: 'Yapı Kredi', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/bank-building.png' },
+  { symbol: 'HALKB', name: 'Halkbank', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/bank-building.png' },
+  { symbol: 'VAKBN', name: 'Vakıfbank', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/bank-building.png' },
+  { symbol: 'BIMAS', name: 'BIM', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/shopping-cart.png' },
+  { symbol: 'MGROS', name: 'Migros', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/shopping-cart.png' },
+  { symbol: 'KOZAL', name: 'Koza Altın', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/gold-bars.png' },
+  { symbol: 'PGSUS', name: 'Pegasus', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/airplane-take-off.png' },
+  { symbol: 'FROTO', name: 'Ford Otosan', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/car.png' },
+  { symbol: 'ENKAI', name: 'Enka İnşaat', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/building.png' },
+  { symbol: 'TOASO', name: 'Tofaş', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/car.png' },
+  { symbol: 'KOZAA', name: 'Koza Anadolu', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/gold-bars.png' },
+  { symbol: 'ARCLK', name: 'Arçelik', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/washing-machine.png' },
+  { symbol: 'TAVHL', name: 'TAV Havalimanları', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/airport.png' },
+  { symbol: 'VESBE', name: 'Vestel Beyaz Eşya', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/washing-machine.png' },
+  { symbol: 'TTKOM', name: 'Türk Telekom', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/cell-phone.png' },
+  { symbol: 'DOHOL', name: 'Doğan Holding', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/company.png' },
+  { symbol: 'EKGYO', name: 'Emlak Konut GYO', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/home.png' },
+  { symbol: 'SODA', name: 'Soda Sanayi', exchange: 'BIST', logo: 'https://img.icons8.com/fluency/48/factory.png' },
 ];
 
 const GLOBAL_STOCKS = [
@@ -61,53 +71,122 @@ export async function getStockPrices(symbols: string[], market: 'turkey' | 'glob
     console.log('[StockService] Fiyatlar çekiliyor:', symbols, market);
 
     if (market === 'turkey') {
-      const response = await fetch('https://api.collectapi.com/economy/hisseSenedi', {
-        headers: {
-          'authorization': 'apikey 3YourCollectAPIKey',
-          'content-type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('[StockService] BIST API yanıtı alındı');
-
-        const result: Record<string, StockPrice> = {};
+      try {
+        const yahooSymbols = symbols.map(s => `${s}.IS`).join(',');
+        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooSymbols}`;
+        console.log('[StockService] Yahoo Finance API çağrısı:', url);
         
-        for (const symbol of symbols) {
-          const stock = data.result?.find((s: any) => s.code === symbol);
-          const stockInfo = TURKEY_STOCKS.find(s => s.symbol === symbol);
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+          },
+        });
 
-          if (stock && stockInfo) {
-            result[symbol] = {
-              symbol,
-              name: stockInfo.name,
-              price: parseFloat(stock.price) || 0,
-              change: parseFloat(stock.change) || 0,
-              changePercent: parseFloat(stock.rate) || 0,
-              exchange: 'BIST',
-              logo: stockInfo.logo,
-            };
+        if (response.ok) {
+          const data = await response.json();
+          console.log('[StockService] Yahoo Finance yanıtı:', data.quoteResponse?.result?.length, 'hisse');
+
+          const result: Record<string, StockPrice> = {};
+          
+          for (const quote of data.quoteResponse?.result || []) {
+            const symbol = quote.symbol.replace('.IS', '');
+            const stockInfo = TURKEY_STOCKS.find(s => s.symbol === symbol);
+
+            if (stockInfo) {
+              const price = quote.regularMarketPrice || 0;
+              const change = quote.regularMarketChange || 0;
+              const changePercent = quote.regularMarketChangePercent || 0;
+              
+              console.log(`[StockService] ${symbol}: ${price.toFixed(2)} TRY (${changePercent.toFixed(2)}%)`);
+              
+              result[symbol] = {
+                symbol,
+                name: stockInfo.name,
+                price,
+                change,
+                changePercent,
+                exchange: 'BIST',
+                logo: stockInfo.logo,
+              };
+            }
+          }
+
+          if (Object.keys(result).length > 0) {
+            console.log('[StockService] Yahoo Finance başarılı:', Object.keys(result).length, 'hisse');
+            return result;
           }
         }
+      } catch (yahooError) {
+        console.error('[StockService] Yahoo Finance hatası:', yahooError);
+      }
+    } else {
+      try {
+        const yahooSymbols = symbols.join(',');
+        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooSymbols}`;
+        console.log('[StockService] Yahoo Finance Global API çağrısı:', url);
+        
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+          },
+        });
 
-        if (Object.keys(result).length > 0) {
-          return result;
+        if (response.ok) {
+          const data = await response.json();
+          console.log('[StockService] Yahoo Finance Global yanıtı:', data.quoteResponse?.result?.length, 'hisse');
+
+          const result: Record<string, StockPrice> = {};
+          const tryToUsd = 0.029;
+          
+          for (const quote of data.quoteResponse?.result || []) {
+            const symbol = quote.symbol;
+            const stockInfo = GLOBAL_STOCKS.find(s => s.symbol === symbol);
+
+            if (stockInfo) {
+              const priceUsd = quote.regularMarketPrice || 0;
+              const price = priceUsd / tryToUsd;
+              const change = (quote.regularMarketChange || 0) / tryToUsd;
+              const changePercent = quote.regularMarketChangePercent || 0;
+              
+              console.log(`[StockService] ${symbol}: ${price.toFixed(2)} TRY (${changePercent.toFixed(2)}%)`);
+              
+              result[symbol] = {
+                symbol,
+                name: stockInfo.name,
+                price,
+                change,
+                changePercent,
+                exchange: stockInfo.exchange,
+                logo: stockInfo.logo,
+              };
+            }
+          }
+
+          if (Object.keys(result).length > 0) {
+            console.log('[StockService] Yahoo Finance Global başarılı:', Object.keys(result).length, 'hisse');
+            return result;
+          }
         }
+      } catch (yahooError) {
+        console.error('[StockService] Yahoo Finance Global hatası:', yahooError);
       }
     }
 
-    console.log('[StockService] API kullanılamıyor, mock veri döndürülüyor');
+    console.log('[StockService] API kullanılamıyor, gerçekçi mock veri döndürülüyor');
     const result: Record<string, StockPrice> = {};
     const stockList = market === 'turkey' ? TURKEY_STOCKS : GLOBAL_STOCKS;
 
     for (const symbol of symbols) {
       const stockInfo = stockList.find(s => s.symbol === symbol);
       if (stockInfo) {
-        const basePrice = market === 'turkey' ? 100 : 200;
-        const price = basePrice + Math.random() * 100;
-        const change = (Math.random() - 0.5) * 10;
-        const changePercent = (change / price) * 100;
+        const seed = symbol.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const random = (seed * 9301 + 49297) % 233280 / 233280;
+        
+        const basePrice = market === 'turkey' ? 50 + random * 150 : 150 + random * 350;
+        const volatility = 0.03;
+        const changePercent = (random - 0.5) * volatility * 200;
+        const price = basePrice * (1 + changePercent / 100);
+        const change = price * (changePercent / 100);
 
         result[symbol] = {
           symbol,

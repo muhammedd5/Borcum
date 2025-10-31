@@ -17,7 +17,7 @@ export interface CryptoSearchResult {
 
 const COINGECKO_API = 'https://api.coingecko.com/api/v3';
 
-const CRYPTO_ID_MAP: Record<string, string> = {
+const EXPANDED_CRYPTO_MAP: Record<string, string> = {
   BTC: 'bitcoin',
   ETH: 'ethereum',
   BNB: 'binancecoin',
@@ -38,14 +38,61 @@ const CRYPTO_ID_MAP: Record<string, string> = {
   VET: 'vechain',
   FIL: 'filecoin',
   TRX: 'tron',
+  SHIB: 'shiba-inu',
+  APE: 'apecoin',
+  SAND: 'the-sandbox',
+  MANA: 'decentraland',
+  AXS: 'axie-infinity',
+  FTM: 'fantom',
+  NEAR: 'near',
+  HBAR: 'hedera-hashgraph',
+  APT: 'aptos',
+  QNT: 'quant-network',
+  ICP: 'internet-computer',
+  ARB: 'arbitrum',
+  OP: 'optimism',
+  INJ: 'injective-protocol',
+  IMX: 'immutable-x',
+  STX: 'blockstack',
+  RUNE: 'thorchain',
+  GRT: 'the-graph',
+  EGLD: 'elrond-erd-2',
+  AAVE: 'aave',
+  MKR: 'maker',
+  CRV: 'curve-dao-token',
+  SNX: 'synthetix-network-token',
+  COMP: 'compound-governance-token',
+  SUSHI: 'sushi',
+  YFI: 'yearn-finance',
+  BAT: 'basic-attention-token',
+  ENJ: 'enjincoin',
+  CHZ: 'chiliz',
+  GALA: 'gala',
+  XTZ: 'tezos',
+  EOS: 'eos',
+  THETA: 'theta-token',
+  FLOW: 'flow',
+  XMR: 'monero',
+  ETC: 'ethereum-classic',
+  ZEC: 'zcash',
+  DASH: 'dash',
+  NEO: 'neo',
+  IOTA: 'iota',
+  XEM: 'nem',
+  WAVES: 'waves',
+  ZIL: 'zilliqa',
+  ONT: 'ontology',
+  QTUM: 'qtum',
 };
+
+
 
 export async function getCryptoPrices(symbols: string[]): Promise<Record<string, CryptoPrice>> {
   try {
     console.log('[CryptoService] Fiyatlar çekiliyor:', symbols);
 
     const ids = symbols
-      .map(s => CRYPTO_ID_MAP[s.toUpperCase()])
+      .map(s => EXPANDED_CRYPTO_MAP[s.toUpperCase()])
       .filter(Boolean)
       .join(',');
 
@@ -75,8 +122,8 @@ export async function getCryptoPrices(symbols: string[]): Promise<Record<string,
     const result: Record<string, CryptoPrice> = {};
 
     for (const coin of data) {
-      const symbol = Object.keys(CRYPTO_ID_MAP).find(
-        key => CRYPTO_ID_MAP[key] === coin.id
+      const symbol = Object.keys(EXPANDED_CRYPTO_MAP).find(
+        key => EXPANDED_CRYPTO_MAP[key] === coin.id
       );
 
       if (symbol) {
@@ -101,34 +148,87 @@ export async function getCryptoPrices(symbols: string[]): Promise<Record<string,
   }
 }
 
+const CRYPTO_LIST: CryptoSearchResult[] = Object.entries(EXPANDED_CRYPTO_MAP).map(([symbol, id]) => {
+  const names: Record<string, string> = {
+    BTC: 'Bitcoin',
+    ETH: 'Ethereum',
+    BNB: 'Binance Coin',
+    XRP: 'Ripple',
+    ADA: 'Cardano',
+    SOL: 'Solana',
+    DOGE: 'Dogecoin',
+    AVAX: 'Avalanche',
+    DOT: 'Polkadot',
+    MATIC: 'Polygon',
+    LINK: 'Chainlink',
+    UNI: 'Uniswap',
+    ATOM: 'Cosmos',
+    LTC: 'Litecoin',
+    BCH: 'Bitcoin Cash',
+    XLM: 'Stellar',
+    ALGO: 'Algorand',
+    VET: 'VeChain',
+    FIL: 'Filecoin',
+    TRX: 'TRON',
+    SHIB: 'Shiba Inu',
+    APE: 'ApeCoin',
+    SAND: 'The Sandbox',
+    MANA: 'Decentraland',
+    AXS: 'Axie Infinity',
+    FTM: 'Fantom',
+    NEAR: 'NEAR Protocol',
+    HBAR: 'Hedera',
+    APT: 'Aptos',
+    QNT: 'Quant',
+    ICP: 'Internet Computer',
+    ARB: 'Arbitrum',
+    OP: 'Optimism',
+    INJ: 'Injective',
+    IMX: 'Immutable X',
+    STX: 'Stacks',
+    RUNE: 'THORChain',
+    GRT: 'The Graph',
+    EGLD: 'MultiversX',
+    AAVE: 'Aave',
+    MKR: 'Maker',
+    CRV: 'Curve DAO',
+    SNX: 'Synthetix',
+    COMP: 'Compound',
+    SUSHI: 'SushiSwap',
+    YFI: 'yearn.finance',
+    BAT: 'Basic Attention',
+    ENJ: 'Enjin',
+    CHZ: 'Chiliz',
+    GALA: 'Gala',
+    XTZ: 'Tezos',
+    EOS: 'EOS',
+    THETA: 'Theta',
+    FLOW: 'Flow',
+    XMR: 'Monero',
+    ETC: 'Ethereum Classic',
+    ZEC: 'Zcash',
+    DASH: 'Dash',
+    NEO: 'NEO',
+    IOTA: 'IOTA',
+    XEM: 'NEM',
+    WAVES: 'Waves',
+    ZIL: 'Zilliqa',
+    ONT: 'Ontology',
+    QTUM: 'Qtum',
+  };
+  return {
+    symbol,
+    name: names[symbol] || symbol,
+    logo: `https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/${symbol.toLowerCase()}.svg`,
+    network: names[symbol] || symbol,
+  };
+});
+
 export async function searchCrypto(query: string): Promise<CryptoSearchResult[]> {
   try {
     console.log('[CryptoService] Kripto arama:', query);
 
-    const cryptos: CryptoSearchResult[] = [
-      { symbol: 'BTC', name: 'Bitcoin', network: 'Bitcoin', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/btc.svg' },
-      { symbol: 'ETH', name: 'Ethereum', network: 'Ethereum', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/eth.svg' },
-      { symbol: 'BNB', name: 'Binance Coin', network: 'BSC', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/bnb.svg' },
-      { symbol: 'XRP', name: 'Ripple', network: 'XRP Ledger', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/xrp.svg' },
-      { symbol: 'ADA', name: 'Cardano', network: 'Cardano', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/ada.svg' },
-      { symbol: 'SOL', name: 'Solana', network: 'Solana', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/sol.svg' },
-      { symbol: 'DOGE', name: 'Dogecoin', network: 'Dogecoin', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/doge.svg' },
-      { symbol: 'AVAX', name: 'Avalanche', network: 'Avalanche', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/avax.svg' },
-      { symbol: 'DOT', name: 'Polkadot', network: 'Polkadot', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/dot.svg' },
-      { symbol: 'MATIC', name: 'Polygon', network: 'Polygon', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/matic.svg' },
-      { symbol: 'LINK', name: 'Chainlink', network: 'Ethereum', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/link.svg' },
-      { symbol: 'UNI', name: 'Uniswap', network: 'Ethereum', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/uni.svg' },
-      { symbol: 'ATOM', name: 'Cosmos', network: 'Cosmos', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/atom.svg' },
-      { symbol: 'LTC', name: 'Litecoin', network: 'Litecoin', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/ltc.svg' },
-      { symbol: 'BCH', name: 'Bitcoin Cash', network: 'Bitcoin Cash', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/bch.svg' },
-      { symbol: 'XLM', name: 'Stellar', network: 'Stellar', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/xlm.svg' },
-      { symbol: 'ALGO', name: 'Algorand', network: 'Algorand', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/algo.svg' },
-      { symbol: 'VET', name: 'VeChain', network: 'VeChain', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/vet.svg' },
-      { symbol: 'FIL', name: 'Filecoin', network: 'Filecoin', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/fil.svg' },
-      { symbol: 'TRX', name: 'TRON', network: 'TRON', logo: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/trx.svg' },
-    ];
-
-    const filtered = cryptos.filter(
+    const filtered = CRYPTO_LIST.filter(
       crypto =>
         crypto.symbol.toLowerCase().includes(query.toLowerCase()) ||
         crypto.name.toLowerCase().includes(query.toLowerCase())

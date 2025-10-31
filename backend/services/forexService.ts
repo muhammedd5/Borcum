@@ -32,11 +32,13 @@ const FOREX_SYMBOLS: Record<string, { name: string; logo: string }> = {
 };
 
 const COMMODITY_SYMBOLS: Record<string, { name: string; unit: string; logo: string }> = {
-  GOLD: { name: 'Altın', unit: 'TRY/Gram', logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' },
-  SILVER: { name: 'Gümüş', unit: 'TRY/Gram', logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' },
-  BRENT: { name: 'Brent Petrol', unit: 'USD/Varil', logo: 'https://cdn-icons-png.flaticon.com/512/3050/3050390.png' },
-  WTI: { name: 'Ham Petrol', unit: 'USD/Varil', logo: 'https://cdn-icons-png.flaticon.com/512/3050/3050390.png' },
-  COPPER: { name: 'Bakır', unit: 'USD/lb', logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' },
+  GOLD: { name: 'Altın', unit: 'TRY/Gram', logo: 'https://img.icons8.com/fluency/48/gold-bars.png' },
+  SILVER: { name: 'Gümüş', unit: 'TRY/Gram', logo: 'https://img.icons8.com/fluency/48/silver-bars.png' },
+  BRENT: { name: 'Brent Petrol', unit: 'USD/Varil', logo: 'https://img.icons8.com/fluency/48/oil-industry.png' },
+  WTI: { name: 'Ham Petrol', unit: 'USD/Varil', logo: 'https://img.icons8.com/fluency/48/oil-barrel.png' },
+  COPPER: { name: 'Bakır', unit: 'USD/lb', logo: 'https://img.icons8.com/fluency/48/copper.png' },
+  PLATINUM: { name: 'Platin', unit: 'TRY/Gram', logo: 'https://img.icons8.com/fluency/48/platinum.png' },
+  PALLADIUM: { name: 'Palladyum', unit: 'TRY/Gram', logo: 'https://img.icons8.com/fluency/48/metal.png' },
 };
 
 export async function getForexRates(): Promise<ForexRate[]> {
@@ -170,7 +172,21 @@ export async function getForexRates(): Promise<ForexRate[]> {
 
 export async function getCommodityPrices(): Promise<CommodityPrice[]> {
   try {
-    console.log('[ForexService] Emtia fiyatları çekiliyor - Metals API');
+    console.log('[ForexService] Emtia fiyatları çekiliyor');
+
+    const commodities: CommodityPrice[] = [];
+    let usdToTry = 34.20;
+
+    try {
+      const forexResponse = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      if (forexResponse.ok) {
+        const forexData = await forexResponse.json();
+        usdToTry = forexData.rates?.TRY || 34.20;
+        console.log('[ForexService] USD/TRY kuru:', usdToTry);
+      }
+    } catch (e) {
+      console.log('[ForexService] Kur bilgisi alınamadı, varsayılan kullanılıyor');
+    }
 
     try {
       const metalsResponse = await fetch('https://api.metals.live/v1/spot');
@@ -179,16 +195,16 @@ export async function getCommodityPrices(): Promise<CommodityPrice[]> {
         const data = await metalsResponse.json();
         console.log('[ForexService] Metals API yanıtı alındı');
 
-        const goldPrice = data.find((m: any) => m.metal === 'gold')?.price || 2650;
-        const silverPrice = data.find((m: any) => m.metal === 'silver')?.price || 31;
+        const goldPriceOz = data.find((m: any) => m.metal === 'gold')?.price || 2650;
+        const silverPriceOz = data.find((m: any) => m.metal === 'silver')?.price || 31;
 
-        const usdToTry = 34.20;
-        const goldPriceGram = (goldPrice / 31.1035) * usdToTry;
-        const silverPriceGram = (silverPrice / 31.1035) * usdToTry;
+        const goldPriceGram = (goldPriceOz / 31.1035) * usdToTry;
+        const silverPriceGram = (silverPriceOz / 31.1035) * usdToTry;
 
-        console.log(`[ForexService] Altın: ${goldPriceGram.toFixed(2)} TRY/Gram, Gümüş: ${silverPriceGram.toFixed(2)} TRY/Gram`);
+        console.log(`[ForexService] Altın: ${goldPriceOz}/oz = ${goldPriceGram.toFixed(2)} TRY/Gram`);
+        console.log(`[ForexService] Gümüş: ${silverPriceOz}/oz = ${silverPriceGram.toFixed(2)} TRY/Gram`);
 
-        const commodities: CommodityPrice[] = [
+        commodities.push(
           { 
             symbol: 'GOLD', 
             name: 'Altın', 
@@ -196,7 +212,7 @@ export async function getCommodityPrices(): Promise<CommodityPrice[]> {
             unit: 'TRY/Gram', 
             change: 0, 
             changePercent: 0, 
-            logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' 
+            logo: 'https://img.icons8.com/fluency/48/gold-bars.png' 
           },
           { 
             symbol: 'SILVER', 
@@ -205,60 +221,65 @@ export async function getCommodityPrices(): Promise<CommodityPrice[]> {
             unit: 'TRY/Gram', 
             change: 0, 
             changePercent: 0, 
-            logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' 
-          },
-        ];
-
-        try {
-          const oilResponse = await fetch('https://api.oilpriceapi.com/v1/prices/latest');
-          if (oilResponse.ok) {
-            const oilData = await oilResponse.json();
-            const brentPrice = oilData.data?.price || 85.20;
-            console.log(`[ForexService] Brent Petrol: ${brentPrice} USD/Varil`);
-            
-            commodities.push(
-              { symbol: 'BRENT', name: 'Brent Petrol', price: brentPrice, unit: 'USD/Varil', change: 0, changePercent: 0, logo: 'https://cdn-icons-png.flaticon.com/512/3050/3050390.png' },
-              { symbol: 'WTI', name: 'Ham Petrol', price: brentPrice - 5, unit: 'USD/Varil', change: 0, changePercent: 0, logo: 'https://cdn-icons-png.flaticon.com/512/3050/3050390.png' }
-            );
+            logo: 'https://img.icons8.com/fluency/48/silver-bars.png' 
           }
-        } catch (oilError) {
-          console.log('[ForexService] Petrol fiyatları alınamadı, varsayılan değerler kullanılıyor');
-          commodities.push(
-            { symbol: 'BRENT', name: 'Brent Petrol', price: 85.20, unit: 'USD/Varil', change: 1.2, changePercent: 1.43, logo: 'https://cdn-icons-png.flaticon.com/512/3050/3050390.png' },
-            { symbol: 'WTI', name: 'Ham Petrol', price: 80.50, unit: 'USD/Varil', change: 0.8, changePercent: 1.00, logo: 'https://cdn-icons-png.flaticon.com/512/3050/3050390.png' }
-          );
-        }
-
-        commodities.push(
-          { symbol: 'COPPER', name: 'Bakır', price: 8.75, unit: 'USD/lb', change: 0.15, changePercent: 1.74, logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' }
         );
-
-        console.log(`[ForexService] Toplam ${commodities.length} emtia fiyatı hazırlandı`);
-        return commodities;
       }
     } catch (metalsError) {
       console.error('[ForexService] Metals API hatası:', metalsError);
+      commodities.push(
+        { symbol: 'GOLD', name: 'Altın', price: 2850.00, unit: 'TRY/Gram', change: 35.00, changePercent: 1.24, logo: 'https://img.icons8.com/fluency/48/gold-bars.png' },
+        { symbol: 'SILVER', name: 'Gümüş', price: 32.50, unit: 'TRY/Gram', change: 0.80, changePercent: 2.52, logo: 'https://img.icons8.com/fluency/48/silver-bars.png' }
+      );
     }
 
-    console.log('[ForexService] API kullanılamıyor, güncel mock veri döndürülüyor');
-    const mockCommodities: CommodityPrice[] = [
-      { symbol: 'GOLD', name: 'Altın', price: 2850.00, unit: 'TRY/Gram', change: 35.00, changePercent: 1.24, logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' },
-      { symbol: 'SILVER', name: 'Gümüş', price: 32.50, unit: 'TRY/Gram', change: 0.80, changePercent: 2.52, logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' },
-      { symbol: 'BRENT', name: 'Brent Petrol', price: 85.20, unit: 'USD/Varil', change: 1.20, changePercent: 1.43, logo: 'https://cdn-icons-png.flaticon.com/512/3050/3050390.png' },
-      { symbol: 'WTI', name: 'Ham Petrol', price: 80.50, unit: 'USD/Varil', change: 0.80, changePercent: 1.00, logo: 'https://cdn-icons-png.flaticon.com/512/3050/3050390.png' },
-      { symbol: 'COPPER', name: 'Bakır', price: 8.75, unit: 'USD/lb', change: 0.15, changePercent: 1.74, logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' },
-    ];
+    try {
+      const oilResponse = await fetch('https://www.alphavantage.co/query?function=WTI&interval=daily&apikey=demo');
+      if (oilResponse.ok) {
+        const oilData = await oilResponse.json();
+        const latestData = oilData.data?.[0];
+        if (latestData) {
+          const wtiPrice = parseFloat(latestData.value) || 80.50;
+          const brentPrice = wtiPrice + 5;
+          console.log(`[ForexService] WTI: ${wtiPrice}/bbl, Brent: ${brentPrice}/bbl (tahmini)`);
+          
+          commodities.push(
+            { symbol: 'BRENT', name: 'Brent Petrol', price: brentPrice, unit: 'USD/Varil', change: 0, changePercent: 0, logo: 'https://img.icons8.com/fluency/48/oil-industry.png' },
+            { symbol: 'WTI', name: 'Ham Petrol', price: wtiPrice, unit: 'USD/Varil', change: 0, changePercent: 0, logo: 'https://img.icons8.com/fluency/48/oil-barrel.png' }
+          );
+        } else {
+          throw new Error('Veri yok');
+        }
+      } else {
+        throw new Error('API hatası');
+      }
+    } catch (oilError) {
+      console.log('[ForexService] Petrol fiyatları alınamadı, varsayılan değerler kullanılıyor');
+      commodities.push(
+        { symbol: 'BRENT', name: 'Brent Petrol', price: 85.20, unit: 'USD/Varil', change: 1.2, changePercent: 1.43, logo: 'https://img.icons8.com/fluency/48/oil-industry.png' },
+        { symbol: 'WTI', name: 'Ham Petrol', price: 80.50, unit: 'USD/Varil', change: 0.8, changePercent: 1.00, logo: 'https://img.icons8.com/fluency/48/oil-barrel.png' }
+      );
+    }
 
-    return mockCommodities;
+    commodities.push(
+      { symbol: 'COPPER', name: 'Bakır', price: 8.75, unit: 'USD/lb', change: 0.15, changePercent: 1.74, logo: 'https://img.icons8.com/fluency/48/copper.png' },
+      { symbol: 'PLATINUM', name: 'Platin', price: (1050 / 31.1035) * usdToTry, unit: 'TRY/Gram', change: 0, changePercent: 0, logo: 'https://img.icons8.com/fluency/48/platinum.png' },
+      { symbol: 'PALLADIUM', name: 'Palladyum', price: (1020 / 31.1035) * usdToTry, unit: 'TRY/Gram', change: 0, changePercent: 0, logo: 'https://img.icons8.com/fluency/48/metal.png' }
+    );
+
+    console.log(`[ForexService] Toplam ${commodities.length} emtia fiyatı hazırlandı`);
+    return commodities;
   } catch (error) {
     console.error('[ForexService] Kritik hata:', error);
     
     const mockCommodities: CommodityPrice[] = [
-      { symbol: 'GOLD', name: 'Altın', price: 2850.00, unit: 'TRY/Gram', change: 35.00, changePercent: 1.24, logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' },
-      { symbol: 'SILVER', name: 'Gümüş', price: 32.50, unit: 'TRY/Gram', change: 0.80, changePercent: 2.52, logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' },
-      { symbol: 'BRENT', name: 'Brent Petrol', price: 85.20, unit: 'USD/Varil', change: 1.20, changePercent: 1.43, logo: 'https://cdn-icons-png.flaticon.com/512/3050/3050390.png' },
-      { symbol: 'WTI', name: 'Ham Petrol', price: 80.50, unit: 'USD/Varil', change: 0.80, changePercent: 1.00, logo: 'https://cdn-icons-png.flaticon.com/512/3050/3050390.png' },
-      { symbol: 'COPPER', name: 'Bakır', price: 8.75, unit: 'USD/lb', change: 0.15, changePercent: 1.74, logo: 'https://cdn-icons-png.flaticon.com/512/2917/2917995.png' },
+      { symbol: 'GOLD', name: 'Altın', price: 2850.00, unit: 'TRY/Gram', change: 35.00, changePercent: 1.24, logo: 'https://img.icons8.com/fluency/48/gold-bars.png' },
+      { symbol: 'SILVER', name: 'Gümüş', price: 32.50, unit: 'TRY/Gram', change: 0.80, changePercent: 2.52, logo: 'https://img.icons8.com/fluency/48/silver-bars.png' },
+      { symbol: 'BRENT', name: 'Brent Petrol', price: 85.20, unit: 'USD/Varil', change: 1.20, changePercent: 1.43, logo: 'https://img.icons8.com/fluency/48/oil-industry.png' },
+      { symbol: 'WTI', name: 'Ham Petrol', price: 80.50, unit: 'USD/Varil', change: 0.80, changePercent: 1.00, logo: 'https://img.icons8.com/fluency/48/oil-barrel.png' },
+      { symbol: 'COPPER', name: 'Bakır', price: 8.75, unit: 'USD/lb', change: 0.15, changePercent: 1.74, logo: 'https://img.icons8.com/fluency/48/copper.png' },
+      { symbol: 'PLATINUM', name: 'Platin', price: 1150.00, unit: 'TRY/Gram', change: 12.00, changePercent: 1.05, logo: 'https://img.icons8.com/fluency/48/platinum.png' },
+      { symbol: 'PALLADIUM', name: 'Palladyum', price: 1120.00, unit: 'TRY/Gram', change: 8.00, changePercent: 0.72, logo: 'https://img.icons8.com/fluency/48/metal.png' },
     ];
 
     return mockCommodities;
