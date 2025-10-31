@@ -14,16 +14,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, CreditCard, ArrowRight, TrendingUp, Calendar, AlertTriangle, CheckCircle } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { formatCurrency, Decimal } from '@/utils/decimal';
-
-import { MOCK_DEBTS } from '@/services/mockData';
 import { getBankInfo } from '@/constants/banks';
 import { Stack, router } from 'expo-router';
 import { Debt } from '@/types';
+import { useDebts } from '@/providers/debts';
 
 export default function DebtsIndexScreen() {
+  const { debts, isLoading } = useDebts();
   const [filter, setFilter] = useState<'all' | 'credit_card' | 'loan'>('all');
 
-  const filteredDebts = MOCK_DEBTS.filter(debt => {
+  const filteredDebts = debts.filter(debt => {
     if (filter === 'all') return true;
     if (filter === 'credit_card') return debt.debtType === 'credit_card';
     return debt.debtType !== 'credit_card';
@@ -203,7 +203,11 @@ export default function DebtsIndexScreen() {
           </View>
 
           <View style={styles.section}>
-            {filteredDebts.length === 0 ? (
+            {isLoading ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateTitle}>Yükleniyor...</Text>
+              </View>
+            ) : filteredDebts.length === 0 ? (
               <View style={styles.emptyState}>
                 <CreditCard size={64} color={Colors.light.textSecondary} strokeWidth={1.5} />
                 <Text style={styles.emptyStateTitle}>Henüz borç eklenmemiş</Text>

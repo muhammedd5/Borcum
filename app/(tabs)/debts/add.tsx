@@ -12,13 +12,15 @@ import {
 import { Stack, router } from 'expo-router';
 import { X, Info, TrendingDown, Calendar, DollarSign, AlertCircle } from 'lucide-react-native';
 import Colors from '@/constants/colors';
-import { getAllBanks } from '@/constants/banks';
+import { getAllBanks, getBankInfo } from '@/constants/banks';
 import { DebtType, InterestType, BankType } from '@/types';
 import { calculateLoan, calculateCreditCardPayoffTime, simulateCreditCardPayments } from '@/utils/calculations';
 import { formatCurrency } from '@/utils/decimal';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useDebts } from '@/providers/debts';
 
 export default function AddDebtScreen() {
+  const { addDebt } = useDebts();
   const [selectedBank, setSelectedBank] = useState<BankType | null>(null);
   const [debtType, setDebtType] = useState<DebtType>('credit_card');
   const [interestType, setInterestType] = useState<InterestType>('fixed');
@@ -136,7 +138,7 @@ export default function AddDebtScreen() {
     }
   }, [balance, interestRate, monthlyPayment, debtType, interestType, loanTermMonths]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedBank) {
       Alert.alert('Hata', 'Lütfen banka seçiniz.');
       return;
@@ -160,31 +162,72 @@ export default function AddDebtScreen() {
       return;
     }
 
-    if (!calculationResult) {
-      Alert.alert('Hata', 'Hesaplama yapılamadı. Lütfen girdiğiniz bilgileri kontrol edin.');
+    if (!calculationResult || calculationResult.error) {
+      Alert.alert('Hata', calculationResult?.error || 'Hesaplama yapılamadı. Lütfen girdiğiniz bilgileri kontrol edin.');
       return;
     }
 
-    console.log('[AddDebt] Saving debt', {
-      selectedBank,
-      debtType,
-      interestType,
-      accountNumber,
-      balance,
-      interestRate,
-      monthlyPayment: calculationResult.monthlyPayment,
-      totalPayment: calculationResult.totalPayment,
-      totalInterest: calculationResult.totalInterest,
-      months: calculationResult.months,
-      dueDate,
-    });
+    if (!dueDate) {
+      Alert.alert('Hata', 'Lütfen son ödeme tarihi giriniz.');
+      return;
+    }
 
-    Alert.alert('Başarılı', 'Borç başarıyla eklendi.', [
-      {
-        text: 'Tamam',
-        onPress: () => router.back(),
-      },
-    ]);
+    const bankInfo = getBankInfo(selectedBank);
+    const parsedDueDate = parseDueDate(dueDate);
+    
+    if (!parsedDueDate) {
+      Alert.alert('Hata', 'Lütfen geçerli bir tarih giriniz (GG/AA/YYYY formatında).');
+      return;
+    }
+
+    const now = new Date();
+    const isOverdue = parsedDueDate < now;
+
+    try {
+      await addDebt({
+        bankName: bankInfo.name,
+        bankType: selectedBank,
+        accountNumber: accountNumber || '****',
+        debtType,
+        balance,
+        interestRate,
+        interestType,
+        monthlyPayment: calculationResult.monthlyPayment,
+        dueDate: parsedDueDate.toISOString(),
+        isOverdue,
+      });
+
+      Alert.alert('Başarılı', 'Borç başarıyla eklendi.', [
+        {
+          text: 'Tamam',
+          onPress: () => router.back(),
+        },
+      ]);
+    } catch (error) {
+      console.error('[AddDebt] Error saving debt:', error);
+      Alert.alert('Hata', 'Borç eklenirken bir hata oluştu.');
+    }
+  };
+
+  const parseDueDate = (dateStr: string): Date | null => {
+    const parts = dateStr.trim().split('/');
+    if (parts.length !== 3) return null;
+    
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+    
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+    if (day < 1 || day > 31) return null;
+    if (month < 0 || month > 11) return null;
+    if (year < 2000 || year > 2100) return null;
+    
+    const date = new Date(year, month, day);
+    if (date.getDate() !== day || date.getMonth() !== month || date.getFullYear() !== year) {
+      return null;
+    }
+    
+    return date;
   };
 
   return (
