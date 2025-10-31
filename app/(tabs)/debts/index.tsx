@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Plus, CreditCard, ArrowRight } from 'lucide-react-native';
+import { Plus, CreditCard, ArrowRight, TrendingUp, Calendar, AlertTriangle, CheckCircle } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { formatCurrency, Decimal } from '@/utils/decimal';
 
@@ -33,6 +33,26 @@ export default function DebtsIndexScreen() {
     (sum, debt) => sum.add(Decimal.fromString(debt.balance)),
     Decimal.zero()
   );
+
+  const totalMonthlyPayment = filteredDebts.reduce(
+    (sum, debt) => sum.add(Decimal.fromString(debt.monthlyPayment)),
+    Decimal.zero()
+  );
+
+  const totalMonthlyInterest = filteredDebts.reduce(
+    (sum, debt) => {
+      const balance = Decimal.fromString(debt.balance);
+      const rate = Decimal.fromString(debt.interestRate).divide(Decimal.fromString('100'));
+      return sum.add(balance.multiply(rate));
+    },
+    Decimal.zero()
+  );
+
+  const overdueDebts = filteredDebts.filter(debt => debt.isOverdue).length;
+  const upcomingDebts = filteredDebts.filter(debt => {
+    const days = getDaysUntilDue(debt.dueDate);
+    return days > 0 && days <= 7;
+  }).length;
 
 
 
@@ -113,14 +133,46 @@ export default function DebtsIndexScreen() {
             end={{ x: 1, y: 1 }}
             style={styles.summaryCard}
           >
-            <View style={styles.summaryHeader}>
-              <Text style={styles.summaryLabel}>Toplam Borç</Text>
-              <TouchableOpacity>
+            <View style={styles.summaryMainInfo}>
+              <View>
+                <Text style={styles.summaryLabel}>Toplam Borç</Text>
+                <Text style={styles.summaryAmount}>{formatCurrency(totalDebt.toString())}</Text>
+              </View>
+              <TouchableOpacity style={styles.eyeButton}>
                 <Text style={styles.eyeIcon}>👁</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.summaryAmount}>{formatCurrency(totalDebt.toString())}</Text>
-            <Text style={styles.summarySubtext}>{filteredDebts.length} borç</Text>
+
+            <View style={styles.summaryStats}>
+              <View style={styles.statItem}>
+                <View style={styles.statIcon}>
+                  <CreditCard size={16} color="rgba(255,255,255,0.9)" strokeWidth={2} />
+                </View>
+                <View>
+                  <Text style={styles.statLabel}>{filteredDebts.length} Borç</Text>
+                  <Text style={styles.statValue}>{formatCurrency(totalMonthlyPayment.toString())}</Text>
+                  <Text style={styles.statDesc}>Aylık Ödeme</Text>
+                </View>
+              </View>
+
+              <View style={styles.statDivider} />
+
+              <View style={styles.statItem}>
+                <View style={styles.statIcon}>
+                  <TrendingUp size={16} color="rgba(255,255,255,0.9)" strokeWidth={2} />
+                </View>
+                <View>
+                  <Text style={styles.statLabel}>Aylık Faiz</Text>
+                  <Text style={styles.statValue}>{formatCurrency(totalMonthlyInterest.toString())}</Text>
+                  {overdueDebts > 0 && (
+                    <Text style={styles.statWarning}>⚠ {overdueDebts} Gecikmiş</Text>
+                  )}
+                  {overdueDebts === 0 && upcomingDebts > 0 && (
+                    <Text style={styles.statDesc}>{upcomingDebts} Yaklaşan</Text>
+                  )}
+                </View>
+              </View>
+            </View>
           </LinearGradient>
 
           <View style={styles.filterContainer}>
@@ -176,16 +228,38 @@ export default function DebtsIndexScreen() {
                 const cardColor = cardColors[colorIndex];
 
                 return (
-                  <TouchableOpacity key={debt.id} style={styles.debtCard}>
+                  <TouchableOpacity 
+                    key={debt.id} 
+                    style={[
+                      styles.debtCard,
+                      isUrgent && styles.debtCardUrgent
+                    ]}
+                  >
                     <View style={styles.debtCardHeader}>
                       <View style={styles.debtCardLeft}>
                         <View style={[styles.debtIconContainer, { backgroundColor: cardColor }]}>
                           <CreditCard size={24} color={Colors.light.surface} />
                         </View>
-                        <View>
-                          <Text style={styles.debtCardTitle}>{debt.bankName}</Text>
+                        <View style={styles.debtHeaderInfo}>
+                          <View style={styles.debtTitleRow}>
+                            <Text style={styles.debtCardTitle}>{debt.bankName}</Text>
+                            {debt.isOverdue && (
+                              <View style={styles.overdueTag}>
+                                <AlertTriangle size={12} color={Colors.light.error} strokeWidth={2.5} />
+                                <Text style={styles.overdueTagText}>Gecikmiş</Text>
+                              </View>
+                            )}
+                            {!debt.isOverdue && daysUntilDue <= 7 && (
+                              <View style={styles.warningTag}>
+                                <Calendar size={12} color={Colors.light.warning} strokeWidth={2.5} />
+                                <Text style={styles.warningTagText}>{daysUntilDue}g</Text>
+                              </View>
+                            )}
+                          </View>
                           <Text style={styles.debtCardSubtitle}>
-                            {debt.debtType === 'credit_card' ? 'Kredi Kartı' : 'Kredi'}
+                            {debt.debtType === 'credit_card' ? 'Kredi Kartı' : 
+                             debt.debtType === 'consumer_loan' ? 'İhtiyaç Kredisi' :
+                             debt.debtType === 'mortgage' ? 'Konut Kredisi' : 'Taşıt Kredisi'} •• {debt.accountNumber.slice(-4)}
                           </Text>
                         </View>
                       </View>
@@ -193,27 +267,58 @@ export default function DebtsIndexScreen() {
                     </View>
 
                     <View style={styles.debtCardBody}>
-                      <View style={styles.debtAmountRow}>
-                        <Text style={styles.debtAmountLabel}>Borç Tutarı</Text>
-                        <Text style={styles.debtAmount}>{formatCurrency(debt.balance)}</Text>
+                      <View style={styles.debtMainInfo}>
+                        <View style={styles.debtAmountSection}>
+                          <Text style={styles.debtAmountLabel}>Toplam Borç</Text>
+                          <Text style={styles.debtAmount}>{formatCurrency(debt.balance)}</Text>
+                        </View>
+                        <View style={styles.debtInterestSection}>
+                          <Text style={styles.debtInterestLabel}>Aylık Faiz</Text>
+                          <Text style={styles.debtInterestValue}>
+                            {formatCurrency(
+                              Decimal.fromString(debt.balance)
+                                .multiply(Decimal.fromString(debt.interestRate).divide(Decimal.fromString('100')))
+                                .toString()
+                            )}
+                          </Text>
+                        </View>
                       </View>
 
-                      <View style={styles.debtDetailsRow}>
-                        <View style={styles.debtDetailItem}>
-                          <Text style={styles.debtDetailLabel}>Aylık Ödeme</Text>
-                          <Text style={styles.debtDetailValue}>{formatCurrency(debt.monthlyPayment)}</Text>
+                      <View style={styles.debtDetailsGrid}>
+                        <View style={styles.debtDetailBox}>
+                          <View style={styles.debtDetailIcon}>
+                            <Calendar size={14} color={Colors.light.primary} strokeWidth={2} />
+                          </View>
+                          <View>
+                            <Text style={styles.debtDetailLabel}>Aylık Ödeme</Text>
+                            <Text style={styles.debtDetailValue}>{formatCurrency(debt.monthlyPayment)}</Text>
+                          </View>
                         </View>
-                        <View style={styles.debtDetailDivider} />
-                        <View style={styles.debtDetailItem}>
-                          <Text style={styles.debtDetailLabel}>Faiz Oranı</Text>
-                          <Text style={styles.debtDetailValue}>%{debt.interestRate}</Text>
+
+                        <View style={styles.debtDetailBox}>
+                          <View style={styles.debtDetailIcon}>
+                            <TrendingUp size={14} color={Colors.light.error} strokeWidth={2} />
+                          </View>
+                          <View>
+                            <Text style={styles.debtDetailLabel}>Faiz Oranı</Text>
+                            <Text style={styles.debtDetailValue}>%{debt.interestRate}</Text>
+                          </View>
                         </View>
-                        <View style={styles.debtDetailDivider} />
-                        <View style={styles.debtDetailItem}>
-                          <Text style={styles.debtDetailLabel}>Son Ödeme</Text>
-                          <Text style={[styles.debtDetailValue, isUrgent && { color: Colors.light.error }]}>
-                            {debt.isOverdue ? 'Gecikmiş' : `${daysUntilDue} gün`}
-                          </Text>
+
+                        <View style={styles.debtDetailBox}>
+                          <View style={styles.debtDetailIcon}>
+                            {debt.isOverdue ? (
+                              <AlertTriangle size={14} color={Colors.light.error} strokeWidth={2} />
+                            ) : (
+                              <CheckCircle size={14} color={Colors.light.success} strokeWidth={2} />
+                            )}
+                          </View>
+                          <View>
+                            <Text style={styles.debtDetailLabel}>Son Ödeme</Text>
+                            <Text style={[styles.debtDetailValue, isUrgent && { color: Colors.light.error }]}>
+                              {debt.isOverdue ? 'Gecikmiş!' : `${daysUntilDue} gün`}
+                            </Text>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -289,14 +394,14 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     marginHorizontal: 24,
-    marginBottom: 32,
-    padding: 28,
-    borderRadius: 28,
+    marginBottom: 24,
+    padding: 24,
+    borderRadius: 24,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.light.shadow.color,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: Colors.light.shadow.opacity,
+        shadowOpacity: 0.15,
         shadowRadius: 16,
       },
       android: {
@@ -304,23 +409,77 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  summaryMainInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
   summaryLabel: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.85)',
     fontWeight: '600',
+    marginBottom: 8,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.5,
   },
   summaryAmount: {
-    fontSize: 40,
+    fontSize: 36,
     fontWeight: '900',
     color: Colors.light.surface,
-    marginTop: 8,
-    marginBottom: 4,
     letterSpacing: -1,
   },
-  summarySubtext: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.8)',
+  eyeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  summaryStats: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  statItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  statIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statLabel: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  statValue: {
+    fontSize: 14,
+    color: Colors.light.surface,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  statDesc: {
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.75)',
     fontWeight: '500',
+  },
+  statWarning: {
+    fontSize: 10,
+    color: '#FFD60A',
+    fontWeight: '700',
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   filterContainer: {
     flexDirection: 'row',
@@ -646,14 +805,8 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     letterSpacing: -0.5,
   },
-  summaryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
   eyeIcon: {
-    fontSize: 20,
+    fontSize: 18,
   },
   debtCard: {
     backgroundColor: Colors.light.surface,
@@ -674,11 +827,27 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  debtCardUrgent: {
+    borderWidth: 2,
+    borderColor: Colors.light.error,
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.light.error,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
   debtCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.border,
   },
@@ -686,6 +855,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
+  },
+  debtHeaderInfo: {
+    flex: 1,
+  },
+  debtTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
   },
   debtIconContainer: {
     width: 48,
@@ -698,7 +877,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: Colors.light.text,
-    marginBottom: 2,
+  },
+  overdueTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  overdueTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.light.error,
+    textTransform: 'uppercase' as const,
+  },
+  warningTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 149, 0, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  warningTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.light.warning,
   },
   debtCardSubtitle: {
     fontSize: 13,
@@ -708,49 +915,77 @@ const styles = StyleSheet.create({
   debtCardBody: {
     padding: 16,
   },
-  debtAmountRow: {
+  debtMainInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border,
+  },
+  debtAmountSection: {
+    flex: 1,
   },
   debtAmountLabel: {
-    fontSize: 13,
-    color: Colors.light.textSecondary,
-    fontWeight: '600',
-  },
-  debtAmount: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.light.text,
-  },
-  debtDetailsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.light.background,
-    borderRadius: 12,
-    padding: 12,
-  },
-  debtDetailItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  debtDetailLabel: {
     fontSize: 11,
     color: Colors.light.textSecondary,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 6,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.5,
+  },
+  debtAmount: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: Colors.light.text,
+    letterSpacing: -0.5,
+  },
+  debtInterestSection: {
+    alignItems: 'flex-end',
+  },
+  debtInterestLabel: {
+    fontSize: 11,
+    color: Colors.light.textSecondary,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  debtInterestValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.light.error,
+  },
+  debtDetailsGrid: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  debtDetailBox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.light.background,
+    padding: 10,
+    borderRadius: 12,
+  },
+  debtDetailIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: Colors.light.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  debtDetailLabel: {
+    fontSize: 10,
+    color: Colors.light.textSecondary,
+    fontWeight: '600',
+    marginBottom: 2,
   },
   debtDetailValue: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.light.text,
-    fontWeight: '700',
-  },
-  debtDetailDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: Colors.light.border,
-    marginHorizontal: 8,
+    fontWeight: '800',
   },
   payButton: {
     marginHorizontal: 16,
