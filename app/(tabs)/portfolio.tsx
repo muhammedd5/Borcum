@@ -80,9 +80,27 @@ export default function PortfolioScreen() {
           const currentPrice = parseFloat(priceData.price);
           const avgPrice = parseFloat(asset.averagePrice);
           const qty = parseFloat(asset.quantity);
+          
+          if (isNaN(currentPrice) || isNaN(avgPrice) || isNaN(qty) || avgPrice === 0) {
+            console.warn('[Portfolio] Geçersiz fiyat verisi:', { currentPrice, avgPrice, qty, symbol: asset.symbol });
+            return asset;
+          }
+
           const totalValue = currentPrice * qty;
-          const profitLoss = totalValue - (avgPrice * qty);
-          const profitLossPercentage = ((currentPrice - avgPrice) / avgPrice) * 100;
+          const totalCost = avgPrice * qty;
+          const profitLoss = totalValue - totalCost;
+          const profitLossPercentage = (profitLoss / totalCost) * 100;
+
+          console.log('[Portfolio] Hesaplama:', {
+            symbol: asset.symbol,
+            currentPrice,
+            avgPrice,
+            qty,
+            totalValue: totalValue.toFixed(2),
+            totalCost: totalCost.toFixed(2),
+            profitLoss: profitLoss.toFixed(2),
+            profitLossPercentage: profitLossPercentage.toFixed(2),
+          });
 
           return {
             ...asset,
@@ -98,8 +116,14 @@ export default function PortfolioScreen() {
     }
   }, [pricesQuery.data]);
 
-  const portfolio = useMemo(() => calculatePortfolio(assets), [assets]);
-  const isProfit = parseFloat(portfolio.totalProfitLoss) >= 0;
+  const portfolio = useMemo(() => {
+    const result = calculatePortfolio(assets);
+    console.log('[Portfolio] Toplam hesaplama:', result);
+    return result;
+  }, [assets]);
+  
+  const totalProfitLossNum = parseFloat(portfolio.totalProfitLoss);
+  const isProfit = !isNaN(totalProfitLossNum) && totalProfitLossNum >= 0;
 
   const assetCategories: AssetCategory[] = [
     { id: 'forex', label: 'Döviz', icon: <DollarSign size={32} color={Colors.light.surface} />, color: '#34C759' },
@@ -363,22 +387,22 @@ export default function PortfolioScreen() {
             </View>
             
             <View style={styles.changeRow}>
-              <Text style={[styles.changeText, { color: isProfit ? '#FF3B30' : '#34C759' }]}>
-                24sa: {isProfit ? '-' : '+'}{formatCurrency(portfolio.totalProfitLoss)}
+              <Text style={[styles.changeText, { color: isProfit ? '#34C759' : '#FF3B30' }]}>
+                24sa: {isProfit ? '+' : ''}{formatCurrency(portfolio.totalProfitLoss)}
               </Text>
-              <View style={[styles.changeBadge, { backgroundColor: isProfit ? 'rgba(255, 59, 48, 0.1)' : 'rgba(52, 199, 89, 0.1)' }]}>
-                <Text style={[styles.changeBadgeText, { color: isProfit ? '#FF3B30' : '#34C759' }]}>
-                  {isProfit ? '▼' : '▲'}{formatPercentage(portfolio.totalProfitLossPercentage)}
+              <View style={[styles.changeBadge, { backgroundColor: isProfit ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 59, 48, 0.1)' }]}>
+                <Text style={[styles.changeBadgeText, { color: isProfit ? '#34C759' : '#FF3B30' }]}>
+                  {isProfit ? '▲' : '▼'}{formatPercentage(portfolio.totalProfitLossPercentage)}
                 </Text>
               </View>
             </View>
 
             <Text style={styles.profitLossLabel}>
-              Toplam Kâr ve Zarar: <Text style={[styles.profitLossValue, { color: isProfit ? '#FF3B30' : '#34C759' }]}>
-                {isProfit ? '-' : '+'}{formatCurrency(portfolio.totalProfitLoss)}
+              Toplam Kâr ve Zarar: <Text style={[styles.profitLossValue, { color: isProfit ? '#34C759' : '#FF3B30' }]}>
+                {isProfit ? '+' : ''}{formatCurrency(portfolio.totalProfitLoss)}
               </Text>
-              <Text style={[styles.profitLossPercent, { color: isProfit ? '#FF3B30' : '#34C759' }]}>
-                {' '}{isProfit ? '▼' : '▲'}{formatPercentage(portfolio.totalProfitLossPercentage)}
+              <Text style={[styles.profitLossPercent, { color: isProfit ? '#34C759' : '#FF3B30' }]}>
+                {' '}{isProfit ? '▲' : '▼'}{formatPercentage(portfolio.totalProfitLossPercentage)}
               </Text>
             </Text>
           </View>
@@ -413,6 +437,8 @@ export default function PortfolioScreen() {
               
               {assets.map((asset) => {
                 const change24h = parseFloat(asset.profitLossPercentage);
+                const isAssetProfit = !isNaN(change24h) && change24h >= 0;
+                const profitLoss = parseFloat(asset.profitLoss);
                 
                 return (
                   <TouchableOpacity key={asset.id} style={styles.assetRow}>
@@ -431,14 +457,16 @@ export default function PortfolioScreen() {
                     </View>
                     
                     <View style={styles.assetChange}>
-                      <Text style={[styles.assetChangeText, { color: change24h >= 0 ? '#34C759' : '#FF3B30' }]}>
-                        {change24h >= 0 ? '▲' : '▼'}{formatPercentage(asset.profitLossPercentage)}
+                      <Text style={[styles.assetChangeText, { color: isAssetProfit ? '#34C759' : '#FF3B30' }]}>
+                        {isAssetProfit ? '▲' : '▼'}{Math.abs(change24h).toFixed(2)}%
                       </Text>
                     </View>
                     
                     <View style={styles.assetRight}>
                       <Text style={styles.assetTotalText}>{formatCurrency(asset.totalValue)}</Text>
-                      <Text style={styles.assetTotalSubtext}>{asset.quantity} {asset.symbol}</Text>
+                      <Text style={[styles.assetTotalSubtext, { color: isAssetProfit ? '#34C759' : '#FF3B30' }]}>
+                        {isAssetProfit ? '+' : ''}{formatCurrency(asset.profitLoss)}
+                      </Text>
                     </View>
                     
                     <TouchableOpacity style={styles.assetMenu}>
@@ -458,11 +486,11 @@ export default function PortfolioScreen() {
               <View style={styles.performanceStats}>
                 <View style={styles.performanceStatCard}>
                   <View style={styles.performanceStatIcon}>
-                    <TrendingUp size={20} color={Colors.light.success} />
+                    <TrendingUp size={20} color={isProfit ? '#34C759' : '#FF3B30'} />
                   </View>
                   <Text style={styles.performanceStatLabel}>Günlük Değişim</Text>
-                  <Text style={[styles.performanceStatValue, { color: isProfit ? '#FF3B30' : '#34C759' }]}>
-                    {isProfit ? '-' : '+'}{formatPercentage(portfolio.totalProfitLossPercentage)}
+                  <Text style={[styles.performanceStatValue, { color: isProfit ? '#34C759' : '#FF3B30' }]}>
+                    {isProfit ? '+' : ''}{formatPercentage(portfolio.totalProfitLossPercentage)}
                   </Text>
                 </View>
                 <View style={styles.performanceStatCard}>
